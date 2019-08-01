@@ -38,7 +38,7 @@ void MotorControl::drive(double rev) {
 
 void MotorControl::driveDeg(double deg) {
 
-  if(driving || drivingDeg || drivingTime || turnedOn) return;
+  if(isMoving()) return;
 
   drivingDeg = true;
   steps = 0;
@@ -46,12 +46,15 @@ void MotorControl::driveDeg(double deg) {
 
 }
 
-void MotorControl::driveTime(double time) {
+void MotorControl::driveTime(double ms) {
 
-  if(driving || drivingDeg || drivingTime || turnedOn) return;
+  if(isMoving()) return;
   
   drivingTime = true;
+  driveSteps = ms;
+  timerDriver = millis();
 
+  on();
 }
 
 void MotorControl::enable(bool en = true) {
@@ -82,29 +85,31 @@ void MotorControl::loop() {
       driving = false;
       drivingDeg = false;
     }
+    return;
+  }
+
+  if(drivingTime) {
+    if(millis() - timerDriver >= driveSteps) {
+      off();
+    }
+    return;
   }
 
 }
 
 void MotorControl::off() {
 
-  if(driving || drivingDeg || drivingTime) return;
- 
-  turnedOn = false;
-  stepping = false;
-  pulse = false;
+  if(turnedOn) {
+    turnedOn = false;
+    stepping = false;
+    pulse = false;
+  }
 
 }
 
 void MotorControl::on() {
   
   turnedOn = true;
-
-}
-
-void MotorControl::setAcceleration(double revPerMin2) {
-
-  acceleration = revPerMin2;
 
 }
 
